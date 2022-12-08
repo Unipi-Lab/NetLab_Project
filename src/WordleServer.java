@@ -17,10 +17,10 @@ public class WordleServer
     public static final String ANSI_GREEN = "\u001B[32m";
     public static final String ANSI_YELLOW = "\u001B[33m";
     static int maxPlayerAttempts = 12;
-    static String jsonFilePath = "C:\\Users\\thump\\Desktop\\users.json";
+    static String jsonFilePath = "C:\\Users\\thump\\Desktop\\usersStats.json";
     static String wordsFilePath = "C:\\Users\\thump\\Desktop\\words.txt";
     static String answer = "";
-    static ConcurrentHashMap<String, String> users = new ConcurrentHashMap<>();
+    static ConcurrentHashMap<String, UserStats> usersStats = new ConcurrentHashMap<>();
 
     static String[] words;
 
@@ -32,7 +32,10 @@ public class WordleServer
             words = getWordsFromTxtFile();
             answer = words[new Random().nextInt(words.length)];
             System.out.println("The word is " + answer);
-            users = loadRegisteredPlayersFromJsonFile();
+            if (new File(jsonFilePath).exists())
+            {
+                usersStats = loadRegisteredPlayersFromJsonFile();
+            }
             var pool = Executors.newFixedThreadPool(20);
             while (true)
             {
@@ -54,12 +57,12 @@ public class WordleServer
 
     }
 
-    private static ConcurrentHashMap<String, String> loadRegisteredPlayersFromJsonFile() throws FileNotFoundException
+    private static ConcurrentHashMap<String, UserStats> loadRegisteredPlayersFromJsonFile() throws FileNotFoundException
     {
         System.out.println("The game server is running...");
         Gson gson = new Gson();
         JsonReader reader = new JsonReader(new FileReader(jsonFilePath));
-        Type concurrentHashMapType = new TypeToken<ConcurrentHashMap<String, String>>()
+        Type concurrentHashMapType = new TypeToken<ConcurrentHashMap<String, UserStats>>()
         {
         }.getType();
         return gson.fromJson(reader, concurrentHashMapType);
@@ -135,13 +138,13 @@ public class WordleServer
                             }
                             case "sendMeStatistics" ->
                             {
-                                if (playerAttempts == 12)
+                                if (!isPlayerPlaying)
                                 {
-                                    //send statistics
+                                    usersStats.get(loggedInPlayer).printStats();
                                 }
                                 else
                                 {
-                                    out.println("You have not played WORDLE yet");
+                                    out.println("You need to finish the current game before you can see your statistics");
                                 }
                             }
                             case "share" ->
@@ -172,7 +175,19 @@ public class WordleServer
                                         isPlayerAboutToSendWord = false;
                                         playerAttempts++;
                                         StringBuilder b = getSuggestions(word);
-                                        out.println(b);
+                                        if (isVictory(word))
+                                        {
+                                            out.println(b + " YOU WON");
+                                            isPlayerPlaying = false;
+                                            usersStats.get(loggedInPlayer).addGamePlayed();
+                                            usersStats.get(loggedInPlayer).addGameWon();
+                                            usersStats.get(loggedInPlayer).addAttemptsOfCurrentWin(playerAttempts);
+                                            updateJSONFile();
+                                        }
+                                        else
+                                        {
+                                            out.println(b);
+                                        }
                                     }
                                     else
                                     {
@@ -218,7 +233,7 @@ public class WordleServer
                                 {
                                     out.println("Password is empty");
                                 }
-                                else if (users.containsKey(username))
+                                else if (usersStats.containsKey(username))
                                 {
                                     out.println("User is already registered. Please log in");
                                     isPlayerRegistered = true;
@@ -226,19 +241,15 @@ public class WordleServer
                                 else
                                 {
 
-                                    users.put(username, password);
-                                    Gson gson = new GsonBuilder().setPrettyPrinting().create();
-                                    String json = gson.toJson(users);
-                                    FileWriter writer = new FileWriter(jsonFilePath);
-                                    writer.write(json);
-                                    writer.close();
+                                    usersStats.put(username, new UserStats(password));
+                                    updateJSONFile();
                                     isPlayerRegistered = true;
                                     out.println("Player registered. Now log in");
                                 }
                             }
                             else
                             {
-                                if (users.containsKey(username) && password.equals(users.get(username)))
+                                if (usersStats.containsKey(username) && password.equals(usersStats.get(username).getPassword()))
                                 {
                                     isPlayerLoggedIn = true;
                                     loggedInPlayer = username;
@@ -252,8 +263,7 @@ public class WordleServer
                         }
                     }
                 }
-            } catch (
-                    Exception e)
+            } catch (Exception e)
 
             {
                 System.out.println("Error:" + socket);
@@ -268,6 +278,20 @@ public class WordleServer
                 }
                 System.out.println("Closed: " + socket);
             }
+        }
+
+        private boolean isVictory(String word)
+        {
+            int greenLettersCount=0;
+            for (int i = 0; i < word.length(); i++)
+            {
+                char c = word.charAt(i);
+                if (answer.charAt(i) == c)
+                {
+                    greenLettersCount++;
+                }
+            }
+            return greenLettersCount == answer.length();
         }
 
         private static StringBuilder getSuggestions(String word)
@@ -321,6 +345,13 @@ public class WordleServer
             }
         }
 
+        private static void updateJSONFile() throws IOException
+        {
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            String json = gson.toJson(usersStats);
+            FileWriter writer = new FileWriter(jsonFilePath);
+            writer.write(json);
+            writer.close();
+        }
     }
-
 }

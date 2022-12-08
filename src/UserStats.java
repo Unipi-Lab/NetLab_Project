@@ -3,6 +3,7 @@ import java.util.List;
 
 public class UserStats
 {
+    String password;
     private int gamesPlayed;
     private int gamesWon;
     private int winCounter;
@@ -11,13 +12,19 @@ public class UserStats
     private final List<Integer> attemptsPerWin;
 
 
-    public UserStats()
+    public UserStats(String password)
     {
+        this.password = password;
         this.gamesPlayed = 0;
         this.gamesWon = 0;
         this.lastWinStreakLength = 0;
         this.maxWinStreakLength = 0;
         this.attemptsPerWin = new ArrayList<>();
+    }
+
+    public String getPassword()
+    {
+        return password;
     }
 
     public int getGamesPlayed()
@@ -55,6 +62,10 @@ public class UserStats
     {
         return this.attemptsPerWin;
     }
+    public void addAttemptsOfCurrentWin(int attempts)
+    {
+        this.attemptsPerWin.add(attempts);
+    }
 
     public void setWinStreakLength()
     {
@@ -63,6 +74,7 @@ public class UserStats
         {
             this.maxWinStreakLength = this.lastWinStreakLength;
         }
+        this.winCounter = 0;
     }
 
 
