@@ -22,12 +22,14 @@ public class WordleServer
     static String answer = "";
     static ConcurrentHashMap<String, String> users = new ConcurrentHashMap<>();
 
-//make  words static and check if the word is in the vocabulary ecc
+    static String[] words;
+
+    //make  words static and check if the word is in the vocabulary ecc
     public static void main(String[] args) throws Exception
     {
         try (var listener = new ServerSocket(59898))
         {
-            String[] words = getWordsFromTxtFile();
+            words = getWordsFromTxtFile();
             answer = words[new Random().nextInt(words.length)];
             System.out.println("The word is " + answer);
             users = loadRegisteredPlayersFromJsonFile();
@@ -42,7 +44,7 @@ public class WordleServer
     private static String[] getWordsFromTxtFile() throws FileNotFoundException
     {
         Scanner sc = new Scanner(new File(wordsFilePath));
-        List<String> lines = new ArrayList<String>();
+        List<String> lines = new ArrayList<>();
         while (sc.hasNextLine())
         {
             lines.add(sc.nextLine());
@@ -115,8 +117,16 @@ public class WordleServer
                             {
                                 if (isPlayerPlaying)
                                 {
-                                    isPlayerAboutToSendWord = true;
-                                    out.println("Type a word");
+                                    if (playerAttempts >= maxPlayerAttempts)
+                                    {
+                                        isPlayerPlaying = false;
+                                        out.println("You have reached the maximum number of attempts. You are not playing WORDLE anymore");
+                                    }
+                                    else
+                                    {
+                                        isPlayerAboutToSendWord = true;
+                                        out.println("Type a word");
+                                    }
                                 }
                                 else
                                 {
@@ -155,10 +165,20 @@ public class WordleServer
                             {
                                 if (isPlayerAboutToSendWord)
                                 {
-                                    if(words)
-                                    isPlayerAboutToSendWord = false;
-                                    StringBuilder b = getSuggestions(word);
-                                    out.println(b.toString());
+                                    List<String> words = Arrays.asList(word.split(" "));
+
+                                    if (words.contains(word))
+                                    {
+                                        isPlayerAboutToSendWord = false;
+                                        playerAttempts++;
+                                        StringBuilder b = getSuggestions(word);
+                                        out.println(b);
+                                    }
+                                    else
+                                    {
+                                        isPlayerAboutToSendWord = false;
+                                        out.println("The word is not in the vocabulary");
+                                    }
                                 }
                                 else if (isPlayerAboutToLogOut)
                                 {
