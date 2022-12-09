@@ -1,3 +1,4 @@
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,12 +79,8 @@ public class UserStats
     }
 
 
-    public void printStats()
+    public void printStats(PrintWriter out)
     {
-        System.out.println("Games played: " + this.gamesPlayed);
-        System.out.println("Games won: " + this.gamesWon);
-        System.out.println("Last win streak length: " + this.lastWinStreakLength);
-        System.out.println("Max win streak length: " + this.maxWinStreakLength);
-        System.out.println("Attempts per win: " + this.attemptsPerWin);
+        out.println("Games played: " + this.gamesPlayed+ " -- Games won: " + this.gamesWon + " -- Last win streak length: " + this.lastWinStreakLength + " -- Max win streak length: " + this.maxWinStreakLength+ " -- Attempts per win: " + this.attemptsPerWin);
     }
 }

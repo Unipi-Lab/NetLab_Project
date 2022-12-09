@@ -140,7 +140,7 @@ public class WordleServer
                             {
                                 if (!isPlayerPlaying)
                                 {
-                                    usersStats.get(loggedInPlayer).printStats();
+                                    usersStats.get(loggedInPlayer).printStats(out);
                                 }
                                 else
                                 {
@@ -168,9 +168,9 @@ public class WordleServer
                             {
                                 if (isPlayerAboutToSendWord)
                                 {
-                                    List<String> words = Arrays.asList(word.split(" "));
+                                    List<String> wordsList = Arrays.asList(words);
 
-                                    if (words.contains(word))
+                                    if (wordsList.contains(word))
                                     {
                                         isPlayerAboutToSendWord = false;
                                         playerAttempts++;
@@ -186,7 +186,17 @@ public class WordleServer
                                         }
                                         else
                                         {
-                                            out.println(b);
+                                            if (playerAttempts == maxPlayerAttempts)
+                                            {
+                                                isPlayerPlaying = false;
+                                                out.println(b + " YOU LOST");
+                                                usersStats.get(loggedInPlayer).addGamePlayed();
+                                                usersStats.get(loggedInPlayer).setWinStreakLength();
+                                            }
+                                            else
+                                            {
+                                                out.println(b);
+                                            }
                                         }
                                     }
                                     else
@@ -282,7 +292,7 @@ public class WordleServer
 
         private boolean isVictory(String word)
         {
-            int greenLettersCount=0;
+            int greenLettersCount = 0;
             for (int i = 0; i < word.length(); i++)
             {
                 char c = word.charAt(i);
