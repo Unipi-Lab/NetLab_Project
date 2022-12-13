@@ -341,16 +341,16 @@ public class WordleServer
                 char c = word.charAt(i);
                 if (answer.charAt(i) == c)
                 {
-                    b.append(ANSI_GREEN).append(c).append(ANSI_RESET);
+                    b.append('+');
                 }
                 else if (answer.contains(Character.toString(c)) && answerMap.get(c) > 0)
                 {
                     answerMap.merge(c, -1, Integer::sum);
-                    b.append(ANSI_YELLOW).append(c).append(ANSI_RESET);
+                    b.append('?');
                 }
                 else
                 {
-                    b.append(c);
+                    b.append('X');
                 }
             }
         }
