@@ -4,10 +4,14 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class WordleClientMain implements Runnable
 {
+    static List<String> udpNotifications = new ArrayList<>();
+
     public static void main(String[] args) throws Exception
     {
         try (var socket = new Socket("localhost", 59898))
@@ -52,11 +56,10 @@ public class WordleClientMain implements Runnable
         socket.joinGroup(group);
         for (int i = 0; i < 10; i++)
         {
-            System.out.println("Waiting for multicast message...");
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
             socket.receive(packet);
             String msg = new String(packet.getData(), packet.getOffset(), packet.getLength());
-            System.out.println("[Multicast UDP message received] >> " + msg);
+            udpNotifications.add(msg);
         }
         socket.leaveGroup(group);
         socket.close();

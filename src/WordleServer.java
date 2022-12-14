@@ -5,8 +5,7 @@ import com.google.gson.stream.JsonReader;
 
 import java.io.*;
 import java.lang.reflect.Type;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -83,6 +82,7 @@ public class WordleServer
             boolean isPlayerPlaying = false;
             boolean isPlayerAboutToLogOut = false;
             boolean isPlayerAboutToSendWord = false;
+            boolean hasTheGameEnded= false;
             String loggedInPlayer = "";
             int playerAttempts = 0;
             try
@@ -146,10 +146,14 @@ public class WordleServer
                             }
                             case "share" ->
                             {
-                                if (playerAttempts == maxPlayerAttempts)
+                                if (hasTheGameEnded)
                                 {
-                                    String lastGameResult= usersStats.get(loggedInPlayer).getLastGameResult();
-                                    int lastGameAttempts =usersStats.get(loggedInPlayer).getLastGameAttempts();
+                                    String lastGameResult = usersStats.get(loggedInPlayer).getLastGameResult();
+                                    int lastGameAttempts = usersStats.get(loggedInPlayer).getLastGameAttempts();
+                                    String ipAddress = "230.0.0.0";
+                                    String udpNotification = loggedInPlayer + " stats => Last game result = " + lastGameResult + " Last game attempts = " + lastGameAttempts;
+                                    sendUDPMessage(udpNotification, ipAddress, 4321);
+                                    out.println("Sharing complete");
 
                                 }
                                 else
@@ -175,6 +179,7 @@ public class WordleServer
                                         StringBuilder b = getSuggestions(word);
                                         if (isVictory(word))
                                         {
+                                            hasTheGameEnded=true;
                                             out.println(b + " YOU WON");
                                             isPlayerPlaying = false;
                                             usersStats.get(loggedInPlayer).addGamePlayed();
@@ -187,6 +192,7 @@ public class WordleServer
                                         {
                                             if (playerAttempts == maxPlayerAttempts)
                                             {
+                                                hasTheGameEnded=true;
                                                 isPlayerPlaying = false;
                                                 out.println(b + " YOU LOST");
                                                 usersStats.get(loggedInPlayer).addGamePlayed();
@@ -289,6 +295,16 @@ public class WordleServer
                 }
                 System.out.println("Closed: " + socket);
             }
+        }
+
+        public static void sendUDPMessage(String message, String ipAddress, int port) throws IOException
+        {
+            DatagramSocket socket = new DatagramSocket();
+            InetAddress group = InetAddress.getByName(ipAddress);
+            byte[] msg = message.getBytes();
+            DatagramPacket packet = new DatagramPacket(msg, msg.length, group, port);
+            socket.send(packet);
+            socket.close();
         }
 
         private boolean isVictory(String word)
