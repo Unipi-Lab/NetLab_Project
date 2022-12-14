@@ -12,6 +12,7 @@ import java.util.concurrent.Executors;
 
 public class WordleServer
 {
+    static int wordTime = 30000;//30 seconds
     static int maxPlayerAttempts = 12;
     static String jsonFilePath = "C:\\Users\\thump\\Desktop\\usersStats.json";
     static String wordsFilePath = "C:\\Users\\thump\\Desktop\\words.txt";
@@ -82,201 +83,221 @@ public class WordleServer
             boolean isPlayerPlaying = false;
             boolean isPlayerAboutToLogOut = false;
             boolean isPlayerAboutToSendWord = false;
-            boolean hasTheGameEnded= false;
+            boolean hasTheGameEnded = false;
             String loggedInPlayer = "";
             int playerAttempts = 0;
             try
             {
+
                 var in = new Scanner(socket.getInputStream());
                 var out = new PrintWriter(socket.getOutputStream(), true);
+                long startTime = System.currentTimeMillis();
                 while (in.hasNextLine())
                 {
+
                     String word = in.nextLine();
-                    if (isPlayerLoggedIn)
+                    long currentTime = System.currentTimeMillis();
+                    if (currentTime - startTime >= wordTime)
                     {
-                        switch (word)
+                        hasTheGameEnded = false;
+                        isPlayerAboutToSendWord = false;
+                        isPlayerPlaying = false;
+                        playerAttempts = 0;
+                        startTime = currentTime;
+                        answer = words[new Random().nextInt(words.length)];
+                        out.println("The word has changed");
+                        System.out.println("The new word is " + answer);
+                    }
+                    else
+                    {
+
+                        if (isPlayerLoggedIn)
                         {
-                            case "logout" ->
+                            switch (word)
                             {
-                                isPlayerAboutToLogOut = true;
-                                out.println("Type your username to log out");
-                            }
-                            case "playWORDLE" ->
-                            {
-                                if (playerAttempts < maxPlayerAttempts)
+                                case "logout" ->
                                 {
-                                    isPlayerPlaying = true;
-                                    out.println("You are playing WORDLE");
+                                    isPlayerAboutToLogOut = true;
+                                    out.println("Type your username to log out");
                                 }
-                                else
+                                case "playWORDLE" ->
                                 {
-                                    out.println("You have reached the maximum number of attempts");
-                                }
-                            }
-                            case "sendWord" ->
-                            {
-                                if (isPlayerPlaying)
-                                {
-                                    if (playerAttempts >= maxPlayerAttempts)
+                                    if (!hasTheGameEnded)
                                     {
-                                        isPlayerPlaying = false;
-                                        out.println("You have reached the maximum number of attempts. You are not playing WORDLE anymore");
+                                        isPlayerPlaying = true;
+                                        out.println("You are playing WORDLE");
                                     }
                                     else
                                     {
-                                        isPlayerAboutToSendWord = true;
-                                        out.println("Type a word");
+                                        out.println("You have reached the maximum number of attempts");
                                     }
                                 }
-                                else
+                                case "sendWord" ->
                                 {
-                                    out.println("You are not playing WORDLE");
-                                }
-                            }
-                            case "sendMeStatistics" ->
-                            {
-                                if (!isPlayerPlaying)
-                                {
-                                    usersStats.get(loggedInPlayer).printStats(out);
-                                }
-                                else
-                                {
-                                    out.println("You need to finish the current game");
-                                }
-                            }
-                            case "share" ->
-                            {
-                                if (hasTheGameEnded)
-                                {
-                                    String lastGameResult = usersStats.get(loggedInPlayer).getLastGameResult();
-                                    int lastGameAttempts = usersStats.get(loggedInPlayer).getLastGameAttempts();
-                                    String ipAddress = "230.0.0.0";
-                                    String udpNotification = loggedInPlayer + " stats => Last game result = " + lastGameResult + " Last game attempts = " + lastGameAttempts;
-                                    sendUDPMessage(udpNotification, ipAddress, 4321);
-                                    out.println("Sharing complete");
-
-                                }
-                                else
-                                {
-                                    out.println("You have not played WORDLE yet");
-                                }
-                            }
-                            case "showMeSharing" ->
-                            {
-                                out.println("Sharing other people last games");
-                            }
-                            default ->
-                            {
-                                if (isPlayerAboutToSendWord)
-                                {
-                                    List<String> wordsList = Arrays.asList(words);
-
-                                    if (wordsList.contains(word))
+                                    if (isPlayerPlaying)
                                     {
-                                        isPlayerAboutToSendWord = false;
-                                        playerAttempts++;
-                                        StringBuilder b = getSuggestions(word);
-                                        if (isVictory(word))
+                                        if (playerAttempts >= maxPlayerAttempts)
                                         {
-                                            hasTheGameEnded=true;
-                                            out.println(b + " YOU WON");
                                             isPlayerPlaying = false;
-                                            usersStats.get(loggedInPlayer).addGamePlayed();
-                                            usersStats.get(loggedInPlayer).addGameWon();
-                                            usersStats.get(loggedInPlayer).addAttemptsOfCurrentWin(playerAttempts);
-                                            usersStats.get(loggedInPlayer).setLastGameResult("Victory");
-                                            updateJSONFile();
+                                            out.println("You have reached the maximum number of attempts. You are not playing WORDLE anymore");
                                         }
                                         else
                                         {
-                                            if (playerAttempts == maxPlayerAttempts)
+                                            isPlayerAboutToSendWord = true;
+                                            out.println("Type a word");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        out.println("You are not playing WORDLE");
+                                    }
+                                }
+                                case "sendMeStatistics" ->
+                                {
+                                    if (!isPlayerPlaying)
+                                    {
+                                        usersStats.get(loggedInPlayer).printStats(out);
+                                    }
+                                    else
+                                    {
+                                        out.println("You need to finish the current game");
+                                    }
+                                }
+                                case "share" ->
+                                {
+                                    if (hasTheGameEnded)
+                                    {
+                                        String lastGameResult = usersStats.get(loggedInPlayer).getLastGameResult();
+                                        int lastGameAttempts = usersStats.get(loggedInPlayer).getLastGameAttempts();
+                                        String ipAddress = "230.0.0.0";
+                                        String udpNotification = loggedInPlayer + " stats => Last game result = " + lastGameResult + "| Last game attempts = " + lastGameAttempts;
+                                        sendUDPMessage(udpNotification, ipAddress, 4321);
+                                        out.println("Sharing complete");
+
+                                    }
+                                    else
+                                    {
+                                        out.println("You have not played WORDLE yet");
+                                    }
+                                }
+                                case "showMeSharing" ->
+                                {
+                                    out.println("Sharing other people last games");
+                                }
+                                default ->
+                                {
+                                    if (isPlayerAboutToSendWord)
+                                    {
+                                        List<String> wordsList = Arrays.asList(words);
+
+                                        if (wordsList.contains(word))
+                                        {
+                                            isPlayerAboutToSendWord = false;
+                                            playerAttempts++;
+                                            StringBuilder b = getSuggestions(word);
+                                            if (isVictory(word))
                                             {
-                                                hasTheGameEnded=true;
+                                                hasTheGameEnded = true;
+                                                out.println(b + " YOU WON");
                                                 isPlayerPlaying = false;
-                                                out.println(b + " YOU LOST");
                                                 usersStats.get(loggedInPlayer).addGamePlayed();
-                                                usersStats.get(loggedInPlayer).setWinStreakLength();
-                                                usersStats.get(loggedInPlayer).setLastGameResult("Loss");
+                                                usersStats.get(loggedInPlayer).addGameWon();
+                                                usersStats.get(loggedInPlayer).addAttemptsOfCurrentWin(playerAttempts);
+                                                usersStats.get(loggedInPlayer).setLastGameResult("Victory");
                                                 updateJSONFile();
                                             }
                                             else
                                             {
-                                                out.println(b);
+                                                if (playerAttempts == maxPlayerAttempts)
+                                                {
+                                                    hasTheGameEnded = true;
+                                                    isPlayerPlaying = false;
+                                                    out.println(b + " YOU LOST");
+                                                    usersStats.get(loggedInPlayer).addGamePlayed();
+                                                    usersStats.get(loggedInPlayer).setWinStreakLength();
+                                                    usersStats.get(loggedInPlayer).setLastGameResult("Loss");
+                                                    updateJSONFile();
+                                                }
+                                                else
+                                                {
+                                                    out.println(b);
+                                                }
                                             }
+                                        }
+                                        else
+                                        {
+                                            isPlayerAboutToSendWord = false;
+                                            out.println("The word is not in the vocabulary");
+                                        }
+                                    }
+                                    else if (isPlayerAboutToLogOut)
+                                    {
+                                        if (word.equals(loggedInPlayer))
+                                        {
+                                            isPlayerAboutToLogOut = false;
+                                            isPlayerLoggedIn = false;
+                                            isPlayerPlaying = false;
+                                            out.println("You have been logged out");
+                                        }
+                                        else
+                                        {
+                                            out.println("This is not your username");
                                         }
                                     }
                                     else
                                     {
-                                        isPlayerAboutToSendWord = false;
-                                        out.println("The word is not in the vocabulary");
+                                        out.println("Logged in. Please type a valid command");
                                     }
-                                }
-                                else if (isPlayerAboutToLogOut)
-                                {
-                                    if (word.equals(loggedInPlayer))
-                                    {
-                                        isPlayerAboutToLogOut = false;
-                                        isPlayerLoggedIn = false;
-                                        isPlayerPlaying = false;
-                                        out.println("You have been logged out");
-                                    }
-                                    else
-                                    {
-                                        out.println("This is not your username");
-                                    }
-                                }
-                                else
-                                {
-                                    out.println("Logged in. Please type a valid command");
                                 }
                             }
-                        }
-                    }
-                    else
-                    {
-                        String[] usernamePassword = word.split(" ");
-                        if (usernamePassword.length != 2)
-                        {
-                            out.println("Invalid command please type username password");
                         }
                         else
                         {
-                            String username = usernamePassword[0];
-                            String password = usernamePassword[1];
-                            if (!isPlayerRegistered)
+                            String[] usernamePassword = word.split(" ");
+                            if (usernamePassword.length != 2)
                             {
-                                if (password.equals(" "))
-                                {
-                                    out.println("Password is empty");
-                                }
-                                else if (usersStats.containsKey(username))
-                                {
-                                    out.println("User is already registered. Please log in");
-                                    isPlayerRegistered = true;
-                                }
-                                else
-                                {
-
-                                    usersStats.put(username, new UserStats(password));
-                                    updateJSONFile();
-                                    isPlayerRegistered = true;
-                                    out.println("Player registered. Now log in");
-                                }
+                                out.println("Invalid command please type username password");
                             }
                             else
                             {
-                                if (usersStats.containsKey(username) && password.equals(usersStats.get(username).getPassword()))
+                                String username = usernamePassword[0];
+                                String password = usernamePassword[1];
+                                if (!isPlayerRegistered)
                                 {
-                                    isPlayerLoggedIn = true;
-                                    loggedInPlayer = username;
-                                    out.println("Player logged in");
+                                    if (password.equals(" "))
+                                    {
+                                        out.println("Password is empty");
+                                    }
+                                    else if (usersStats.containsKey(username))
+                                    {
+                                        out.println("User is already registered. Please log in");
+                                        isPlayerRegistered = true;
+                                    }
+                                    else
+                                    {
+
+                                        usersStats.put(username, new UserStats(password));
+                                        updateJSONFile();
+                                        isPlayerRegistered = true;
+                                        out.println("Player registered. Now log in");
+                                    }
                                 }
                                 else
                                 {
-                                    out.println("Wrong username or password. Please try again");
+                                    if (usersStats.containsKey(username) && password.equals(usersStats.get(username).getPassword()))
+                                    {
+                                        isPlayerLoggedIn = true;
+                                        loggedInPlayer = username;
+                                        out.println("Player logged in");
+                                    }
+                                    else
+                                    {
+                                        out.println("Wrong username or password. Please try again");
+                                    }
                                 }
                             }
                         }
+
                     }
                 }
             } catch (Exception e)
