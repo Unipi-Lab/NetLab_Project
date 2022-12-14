@@ -32,6 +32,13 @@ public class WordleClientMain implements Runnable
                     Thread t = new Thread(new WordleClientMain());
                     t.start();
                 }
+                if (response.equals("Sharing other people last games"))
+                {
+                    for (String udpNotification : udpNotifications)
+                    {
+                        System.out.println(udpNotification);
+                    }
+                }
             }
         }
     }

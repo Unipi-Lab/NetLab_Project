@@ -163,8 +163,7 @@ public class WordleServer
                             }
                             case "showMeSharing" ->
                             {
-                                //show sharing
-                                ;
+                                out.println("Sharing other people last games");
                             }
                             default ->
                             {
