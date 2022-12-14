@@ -13,9 +13,6 @@ import java.util.concurrent.Executors;
 
 public class WordleServer
 {
-    public static final String ANSI_RESET = "\u001B[0m";
-    public static final String ANSI_GREEN = "\u001B[32m";
-    public static final String ANSI_YELLOW = "\u001B[33m";
     static int maxPlayerAttempts = 12;
     static String jsonFilePath = "C:\\Users\\thump\\Desktop\\usersStats.json";
     static String wordsFilePath = "C:\\Users\\thump\\Desktop\\words.txt";
@@ -144,15 +141,16 @@ public class WordleServer
                                 }
                                 else
                                 {
-                                    out.println("You need to finish the current game before you can see your statistics");
+                                    out.println("You need to finish the current game");
                                 }
                             }
                             case "share" ->
                             {
-                                if (playerAttempts == 12)
+                                if (playerAttempts == maxPlayerAttempts)
                                 {
-                                    //share statistics
-                                    ;
+                                    String lastGameResult= usersStats.get(loggedInPlayer).getLastGameResult();
+                                    int lastGameAttempts =usersStats.get(loggedInPlayer).getLastGameAttempts();
+
                                 }
                                 else
                                 {
@@ -182,6 +180,7 @@ public class WordleServer
                                             usersStats.get(loggedInPlayer).addGamePlayed();
                                             usersStats.get(loggedInPlayer).addGameWon();
                                             usersStats.get(loggedInPlayer).addAttemptsOfCurrentWin(playerAttempts);
+                                            usersStats.get(loggedInPlayer).setLastGameResult("Victory");
                                             updateJSONFile();
                                         }
                                         else
@@ -192,6 +191,8 @@ public class WordleServer
                                                 out.println(b + " YOU LOST");
                                                 usersStats.get(loggedInPlayer).addGamePlayed();
                                                 usersStats.get(loggedInPlayer).setWinStreakLength();
+                                                usersStats.get(loggedInPlayer).setLastGameResult("Loss");
+                                                updateJSONFile();
                                             }
                                             else
                                             {

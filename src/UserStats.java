@@ -10,6 +10,10 @@ public class UserStats
     private int winCounter;
     private int lastWinStreakLength;
     private int maxWinStreakLength;
+
+    private String lastGameResult;
+
+
     private final List<Integer> attemptsPerWin;
 
 
@@ -63,6 +67,7 @@ public class UserStats
     {
         return this.attemptsPerWin;
     }
+
     public void addAttemptsOfCurrentWin(int attempts)
     {
         this.attemptsPerWin.add(attempts);
@@ -78,9 +83,23 @@ public class UserStats
         this.winCounter = 0;
     }
 
+    public void setLastGameResult(String result)
+    {
+        this.lastGameResult = result;
+    }
+
+    public String getLastGameResult()
+    {
+        return this.lastGameResult;
+    }
+   public int getLastGameAttempts()
+   {
+       return this.attemptsPerWin.get(this.attemptsPerWin.size()-1);
+   }
+
 
     public void printStats(PrintWriter out)
     {
-        out.println("Games played: " + this.gamesPlayed+ " -- Games won: " + this.gamesWon + " -- Last win streak length: " + this.lastWinStreakLength + " -- Max win streak length: " + this.maxWinStreakLength+ " -- Attempts per win: " + this.attemptsPerWin);
+        out.println("Games played: " + this.gamesPlayed + " -- Games won: " + this.gamesWon + " -- Last win streak length: " + this.lastWinStreakLength + " -- Max win streak length: " + this.maxWinStreakLength + " -- Attempts per win: " + this.attemptsPerWin);
     }
 }
