@@ -2,4 +2,4 @@ Il progetto consiste nella implementazione di WORDLE, un gioco di parole web-bas
 
 [Requisiti Progetto](Requirements.pdf)
 
-[Scelte implementative]("Relazione_Laboratorio.pdf")
+[Scelte implementative](Relazione_Laboratorio.pdf)
