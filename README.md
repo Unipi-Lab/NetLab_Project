@@ -1,4 +1,4 @@
-Il progetto consiste nella implementazione di WORDLE, un gioco di parole web-based, divenuto virale alla fine del 2021.  Il gioco consiste nel trovare una parola inglese formata da 5 lettere, impiegando un numero massimo di 6 tentativi. WORDLE dispone di un vocabolario di parole di 5 lettere, da cui estrae casualmente una parola SW (Secret Word), che gli utenti devono indovinare. Ogni giorno viene selezionata una nuova SW, che rimane invariata fino al giorno successivo e che viene proposta a tutti gli utenti che si collegano al sistema durante quel giorno. Quindi esiste una sola parola per ogni giorno e tutti gli utenti devono indovinarla, questo attribuisce al gioco un aspetto sociale. L’utente propone una parola GW (Guessed Word) e il sistema inizialmente verifica se la parola è presente nel vocabolario. In caso negativo avverte l’utente che deve immettere un’altra parola. In caso la parola sia presente, il sistema fornisce all’utente alcuni indizi, utili per indovinare la parola.
+
 
 
 [Scelte implementative](Relazione_Laboratorio.pdf)
@@ -77,7 +77,6 @@ Il progetto consiste nella implementazione di WORDLE, un gioco di parole web-bas
 
 The project consists of the implementation of WORDLE, a web-based game of words, which went wildly viral all over the world in 2021. The game consists of finding an English word of 5 letters with a maximum number of 6 tentatives. WORDLE has a vocabulary with 5-letter words, from which it extracts a SW (Secret Word) that users have to guess. Every day a new SW is selected and proposed to all the users connected to the system, and it remains until the next day. In other words, only a word exists every day, and all the users have to guess it; this gives the game a social aspect. The user proposes a GW (Guessed Word) and the system, initially, verifies if the word is present in the vocabulary. If it's not, it requests a user another word. If, instead, the word is present, the system provides the user with suggestions, useful for guessing the word.
 
-[Requirements](Requirements.pdf)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -112,7 +111,7 @@ To run the program follow the instructions below.
    ```sh
    java -jar server.jar
    ```
-  * Then, on another terminal window, run the client.jar file
+* Then, on another terminal window, run the client.jar file
    ```sh
    java -jar client.jar
    ```
@@ -134,7 +133,7 @@ After running the client the user can send username and password to register/log
 
 After loggin in the user can choose one of the following commands:
 
-   ```sh
+   ```
    playWORDLE: request to participate to the daily session. 
    logout(username): logout from the system.
    sendWord: allow the player to send a word to the system. 
