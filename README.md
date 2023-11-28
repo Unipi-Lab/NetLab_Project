@@ -1,7 +1,6 @@
 
 
 
-[Scelte implementative](Relazione_Laboratorio.pdf)
 <!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
 <a name="readme-top"></a>
 <!--
@@ -61,6 +60,7 @@
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
         <li><a href="#installation">Installation</a></li>
+        <li><a href="#execution">Execution</a></li>
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
